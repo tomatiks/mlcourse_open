@@ -32,7 +32,7 @@
 7. [Обучение без учителя](https://www.youtube.com/watch?v=qmW968tw3AM)
 8. [Признаки, SGD, Vowpal Wabbit](https://www.youtube.com/watch?v=MnLc7xKSAsk)
 9. [Временные ряды](https://youtu.be/nQjul-5_0_M)
-10. [Градиентный бустинг](https://www.youtube.com/watch?v=x4y9lKE4HpU)
+10. [Градиентный бустинг](https://youtu.be/x5Bz9ChD7N0)
 
 ### Беседы с гуру Data Science
 11. [Александр Дьяконов](https://www.youtube.com/watch?v=qV3yjIyj7Dc)
@@ -48,7 +48,7 @@
 6. Исследование признаков на примере поездок такси в Чикаго. [ipynb](https://goo.gl/2s3osC)
 7. Обучение без учителя. [ipynb](https://goo.gl/Yk25mx)
 8. Vowpal Wabbit в задаче прогнозирования популярности статьи на Хабре. [ipynb](https://goo.gl/JfRRjz)
-9. Временные ряды. Дедлайн: 10 ноября 23:59 UTC +3. [ipynb](https://goo.gl/NBfg9v)
+9. Временные ряды. [ipynb](https://goo.gl/NBfg9v)
 10. Прогнозирование задержек вылетов. Дедлайн: 14 ноября 23:59 UTC +3. [ipynb](https://goo.gl/rjZUKx)
 
 ## Соревнования
@@ -66,7 +66,7 @@
 
  - [Все активности по втором запуске курса](https://goo.gl/cJbw7V). Домашки, соревнования, проекты, тьюториалы и мини-конкурсы и все, за что еще можно получить баллы и, главное, опыт.
  - [Prerequisites: Python, математика, DevOps](https://github.com/Yorko/mlcourse_open/wiki/Prerequisites:-Python,-математика,-DevOps). О том, как лучше подготовиться к прохождению курса, если навыков программирования или знаний математики не хватает.
- - [Домашние задания 1-ой сессии курса](https://github.com/Yorko/mlcourse_open/wiki/Домашние-задания-1-сессии-курса). С решениями. На текущий рейтинг не влияют.
+ - [Домашние задания 1-ой сессии курса](https://github.com/Yorko/mlcourse_open/wiki/Домашние-задания-1-сессии-курса). На текущий рейтинг не влияют.
  - [План совместного прохождения курса cs231n c 15.11.2017](https://goo.gl/rQmctS)
  - [Авторы статей и лекторы](https://github.com/Yorko/mlcourse_open/wiki/Авторы-статей-и-лекторы). Вкратце представляем всех, кто поработал над курсом.
  - [ПО для прохождения курса и Docker](https://github.com/Yorko/mlcourse_open/wiki/ПО-для-прохождения-курса-и-Docker) – как настроить все ПО для прохождения курса. В частности, описывается, как запустить у себя Docker-контейнер, в котором уже все установлено.
