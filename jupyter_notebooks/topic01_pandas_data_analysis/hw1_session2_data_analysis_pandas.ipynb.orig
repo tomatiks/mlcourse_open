@@ -1,0 +1,1387 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<center>\n",
+    "<img src=\"../../img/ods_stickers.jpg\">\n",
+    "## Открытый курс по машинному обучению. Сессия № 2\n",
+    "</center>\n",
+    "Автор материала: программист-исследователь Mail.ru Group, старший преподаватель Факультета Компьютерных Наук ВШЭ Юрий Кашницкий. Материал распространяется на условиях лицензии [Creative Commons CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Можно использовать в любых целях (редактировать, поправлять и брать за основу), кроме коммерческих, но с обязательным упоминанием автора материала."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# <center> Домашнее задание № 1\n",
+    "## <center> Анализ данных по сердечно-сосудистым заболеваниям"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**В задании предлагается с помощью Pandas ответить на несколько вопросов по данным о сердечно-сосудистых заболеваниях (качать данные не надо, они уже есть в репозитории). Данные использовались в соревновании [Ml Boot Camp 5](http://mlbootcamp.ru/round/12/sandbox/).**\n",
+    "\n",
+    "**Заполните код в клетках (где написано \"Ваш код здесь\") и ответьте на вопросы в [веб-форме](https://goo.gl/8D8uDf).**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "В соревновании предлагалось определить наличие/отсутствие сердечно-сосудистых заболеваний (ССЗ) по результатам осмотра пациента.\n",
+    "\n",
+    "**Описание данных.**\n",
+    "\n",
+    "Объективные признаки:\n",
+    "\n",
+    " - Возраст (age)\n",
+    " - Рост (height)\n",
+    " - Вес (weight)\n",
+    " - Пол (gender)\n",
+    " \n",
+    "\n",
+    "Результаты измерения:\n",
+    "\n",
+    " - Артериальное давление верхнее и нижнее (ap_hi, ap_lo)\n",
+    " - Холестерин (cholesterol)\n",
+    " - Глюкоза (gluc)\n",
+    " \n",
+    "\n",
+    "Субъективные признаки (со слов пациентов):\n",
+    "\n",
+    " - Курение (smoke)\n",
+    " - Употребление алкоголя (alco)\n",
+    " - Физическая активность (active)\n",
+    " \n",
+    "Целевой признак (который интересно будет прогнозировать):\n",
+    " - Наличие сердечно-сосудистых заболеваний по результатам классического врачебного осмотра (cardio)\n",
+    "\n",
+    "Значения показателей холестерина и глюкозы представлены одним из трех классов: норма, выше нормы, значительно выше нормы. Значения субъективных признаков — бинарны.\n",
+    "\n",
+    "Все показатели даны на момент осмотра.\n",
+    "\n",
+    "Мы будем работать только с обучающей выборкой и с помощью `Pandas` проведем первичный анализ данных. "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Из библиотек нам понадобятся только `NumPy` и `Pandas`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Считываем данные из CSV-файла в объект pandas DataFrame.  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 167,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "df = pd.read_csv('../../data/mlbootcamp5_train.csv', sep=';', index_col='id')\n",
+    "df[\"gender\"] = df[\"gender\"].map({1:\"W\",2:\"M\"})"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Посмотрим не первые 5 записей."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 90,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style>\n",
+       "    .dataframe thead tr:only-child th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>age</th>\n",
+       "      <th>gender</th>\n",
+       "      <th>height</th>\n",
+       "      <th>weight</th>\n",
+       "      <th>ap_hi</th>\n",
+       "      <th>ap_lo</th>\n",
+       "      <th>cholesterol</th>\n",
+       "      <th>gluc</th>\n",
+       "      <th>smoke</th>\n",
+       "      <th>alco</th>\n",
+       "      <th>active</th>\n",
+       "      <th>cardio</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>id</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>18393</td>\n",
+       "      <td>M</td>\n",
+       "      <td>168</td>\n",
+       "      <td>62.0</td>\n",
+       "      <td>110</td>\n",
+       "      <td>80</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>20228</td>\n",
+       "      <td>W</td>\n",
+       "      <td>156</td>\n",
+       "      <td>85.0</td>\n",
+       "      <td>140</td>\n",
+       "      <td>90</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>18857</td>\n",
+       "      <td>W</td>\n",
+       "      <td>165</td>\n",
+       "      <td>64.0</td>\n",
+       "      <td>130</td>\n",
+       "      <td>70</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>17623</td>\n",
+       "      <td>M</td>\n",
+       "      <td>169</td>\n",
+       "      <td>82.0</td>\n",
+       "      <td>150</td>\n",
+       "      <td>100</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>17474</td>\n",
+       "      <td>W</td>\n",
+       "      <td>156</td>\n",
+       "      <td>56.0</td>\n",
+       "      <td>100</td>\n",
+       "      <td>60</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>21914</td>\n",
+       "      <td>W</td>\n",
+       "      <td>151</td>\n",
+       "      <td>67.0</td>\n",
+       "      <td>120</td>\n",
+       "      <td>80</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>22113</td>\n",
+       "      <td>W</td>\n",
+       "      <td>157</td>\n",
+       "      <td>93.0</td>\n",
+       "      <td>130</td>\n",
+       "      <td>80</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>22584</td>\n",
+       "      <td>M</td>\n",
+       "      <td>178</td>\n",
+       "      <td>95.0</td>\n",
+       "      <td>130</td>\n",
+       "      <td>90</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>17668</td>\n",
+       "      <td>W</td>\n",
+       "      <td>158</td>\n",
+       "      <td>71.0</td>\n",
+       "      <td>110</td>\n",
+       "      <td>70</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>14</th>\n",
+       "      <td>19834</td>\n",
+       "      <td>W</td>\n",
+       "      <td>164</td>\n",
+       "      <td>68.0</td>\n",
+       "      <td>110</td>\n",
+       "      <td>60</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>22530</td>\n",
+       "      <td>W</td>\n",
+       "      <td>169</td>\n",
+       "      <td>80.0</td>\n",
+       "      <td>120</td>\n",
+       "      <td>80</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "      age gender  height  weight  ap_hi  ap_lo  cholesterol  gluc  smoke  \\\n",
+       "id                                                                         \n",
+       "0   18393      M     168    62.0    110     80            1     1      0   \n",
+       "1   20228      W     156    85.0    140     90            3     1      0   \n",
+       "2   18857      W     165    64.0    130     70            3     1      0   \n",
+       "3   17623      M     169    82.0    150    100            1     1      0   \n",
+       "4   17474      W     156    56.0    100     60            1     1      0   \n",
+       "8   21914      W     151    67.0    120     80            2     2      0   \n",
+       "9   22113      W     157    93.0    130     80            3     1      0   \n",
+       "12  22584      M     178    95.0    130     90            3     3      0   \n",
+       "13  17668      W     158    71.0    110     70            1     1      0   \n",
+       "14  19834      W     164    68.0    110     60            1     1      0   \n",
+       "15  22530      W     169    80.0    120     80            1     1      0   \n",
+       "\n",
+       "    alco  active  cardio  \n",
+       "id                        \n",
+       "0      0       1       0  \n",
+       "1      0       1       1  \n",
+       "2      0       0       1  \n",
+       "3      0       1       1  \n",
+       "4      0       0       0  \n",
+       "8      0       0       0  \n",
+       "9      0       1       0  \n",
+       "12     0       1       1  \n",
+       "13     0       1       0  \n",
+       "14     0       0       0  \n",
+       "15     0       1       0  "
+      ]
+     },
+     "execution_count": 90,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.head(11)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Вопрос 1 (1 балл).</font> Сколько мужчин и женщин представлено в этом наборе данных? Не было дано расшифровки признака \"пол\" (какому полу соответствует 1, а какому – 2 в признаке ``gender``) – это определите, посмотрев также на рост при разумном предположении, что в среднем мужчины выше.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Варианты:</font>**\n",
+    "- 45530 женщин и 24470 мужчин\n",
+    "- 45530 мужчин и 24470 женщин\n",
+    "- 45470 женщин и 24530 мужчин\n",
+    "- 45470 мужчин и 24530 женщин"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style>\n",
+       "    .dataframe thead tr:only-child th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>weight</th>\n",
+       "      <th>height</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>gender</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>72.565605</td>\n",
+       "      <td>161.355612</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>77.257307</td>\n",
+       "      <td>169.947895</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "           weight      height\n",
+       "gender                       \n",
+       "1       72.565605  161.355612\n",
+       "2       77.257307  169.947895"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.groupby(by=\"gender\")[\"weight\",\"height\"].mean()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style>\n",
+       "    .dataframe thead tr:only-child th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>weight</th>\n",
+       "      <th>height</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>gender</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>45530</td>\n",
+       "      <td>45530</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>24470</td>\n",
+       "      <td>24470</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        weight  height\n",
+       "gender                \n",
+       "1        45530   45530\n",
+       "2        24470   24470"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.groupby(by=\"gender\")[\"weight\",\"height\"].count()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Вопрос 2 (1 балл).</font> Кто в среднем чаще указывает, что употребляет алкоголь – мужчины или женщины?**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Варианты:</font>**\n",
+    "- женщины\n",
+    "- мужчины"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 163,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style>\n",
+       "    .dataframe thead tr:only-child th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "Empty DataFrame\n",
+       "Columns: []\n",
+       "Index: []"
+      ]
+     },
+     "execution_count": 163,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df[\"gender\"] = df[\"gender\"].map({1:\"W\",2:\"M\"})\n",
+    "pd.crosstab(df['gender'],df['alco'])\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Вопрос 3 (1 балл).</font> Во сколько раз (округленно) процент курящих среди мужчин больше, чем процент курящих среди женщин (по крайней мере, по этим анкетным данным)?**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Варианты:</font>**\n",
+    "- 4\n",
+    "- 8\n",
+    "- 12\n",
+    "- 16"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "gender  smoke\n",
+      "M       0        0.781120\n",
+      "        1        0.218880\n",
+      "W       0        0.982144\n",
+      "        1        0.017856\n",
+      "Name: smoke, dtype: float64\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "12.0"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "o=df.groupby(by=\"gender\")[\"smoke\"].value_counts(normalize=True)\n",
+    "print(o)\n",
+    "o[1]//o[3]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Вопрос 4 (1 балл).</font> Вы наверняка заметили, что значения возраста какие-то странные. Догадайтесь, в чем здесь измеряется возраст, и ответьте, на сколько месяцев (примерно) отличаются медианные значения возраста курящих и некурящих.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Варианты:</font>**\n",
+    "- 5\n",
+    "- 10\n",
+    "- 15\n",
+    "- 20"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "id\n",
+       "0     54.741071\n",
+       "1     60.202381\n",
+       "2     56.122024\n",
+       "3     52.449405\n",
+       "4     52.005952\n",
+       "8     65.220238\n",
+       "9     65.812500\n",
+       "12    67.214286\n",
+       "13    52.583333\n",
+       "14    59.029762\n",
+       "Name: age, dtype: float64"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "(df['age']/(12*4*7)).head(10)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "smoke\n",
+      "0    19722\n",
+      "1    19125\n",
+      "Name: age, dtype: int64\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "19.899999999999999"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "median_age=df.groupby(['smoke'])['age'].median()\n",
+    "print(median_age)\n",
+    "(median_age[0]-median_age[1])/30"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# **<font color='red'>Вопрос 5 (2 балла).</font> В [статье](https://ru.wikipedia.org/wiki/Сердечно-сосудистый_риск) на Википедии про сердечно-сосудистый риск показана шкала SCORE для расчёта риска смерти от сердечно-сосудистого заболевания в ближайшие 10 лет. Вот она:**\n",
+    "<img src='../../img/SCORE2007.png' width=70%>\n",
+    "\n",
+    "Давайте посмотрим на правый верхний прямоугольник, отображающий сегмент курящих мужчин в возрасте от 60 до 65 лет. (Неочевидно, но тут для возраста и давления цифры означают верхнюю границу).\n",
+    "\n",
+    "Видим 9-ку в левом нижнем углу этого прямоугольника и 47 – в правом верхнем. То есть если при этом систолическое (т.е. верхнее) артериальное давление – меньше 120 мм рт.ст., то риск ССЗ оценивается примерно в 5 раз ниже, чем если бы давление лежало в интервале [160, 180). \n",
+    "\n",
+    "Давайте посчитаем аналогичное значение, но на наших данных. \n",
+    "\n",
+    "Уточнения:\n",
+    "- Посчитайте признак ``age_years`` – возраст в годах, округлив до целых. Для данного примера отберите людей от 60 до 64 лет включительно\n",
+    "- Категории уровня холестрина на рисунке и в наших данных отличаются. Отображение значений на картинке в значения признака ``cholesterol`` следующее: 4 ммоль/л $\\rightarrow$ 1, 5-7 ммоль/л $\\rightarrow$ 2, 8 ммоль/л $\\rightarrow$ 3.\n",
+<<<<<<< HEAD
+    "\n",
+    "Во сколько раз (округленно) отличаются доли больных в двух сегментах, описанных выше? Посчитайте на наших данных."
+=======
+    "- Интересуют 2 подвыборки курящих мужчин возраста от 60 до 64 лет: первая с верхним артериальным давлением меньше 120 мм рт.ст. и концентрацией холестерина – 4 ммоль/л, а вторая – с верхним артериальным давлением от 160 до 180 мм рт.ст. (не включая верхнюю границу) и концентрацией холестерина – 8 ммоль/л.\n",
+    "\n",
+    "**Во сколько раз (округленно, `round`) отличаются доли больных людей в этих двух подвыборках? Посчитайте на наших данных.**"
+>>>>>>> 478d1ff1ca11f68f6d367d5b177b12abd320d68b
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Варианты:</font>**\n",
+    "- 2\n",
+    "- 3\n",
+    "- 4\n",
+    "- 5"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 97,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style>\n",
+       "    .dataframe thead tr:only-child th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>age</th>\n",
+       "      <th>gender</th>\n",
+       "      <th>height</th>\n",
+       "      <th>weight</th>\n",
+       "      <th>ap_hi</th>\n",
+       "      <th>ap_lo</th>\n",
+       "      <th>cholesterol</th>\n",
+       "      <th>gluc</th>\n",
+       "      <th>smoke</th>\n",
+       "      <th>alco</th>\n",
+       "      <th>active</th>\n",
+       "      <th>cardio</th>\n",
+       "      <th>age_years</th>\n",
+       "      <th>new_ap</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>id</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>18393</td>\n",
+       "      <td>M</td>\n",
+       "      <td>168</td>\n",
+       "      <td>62.0</td>\n",
+       "      <td>110</td>\n",
+       "      <td>80</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>50</td>\n",
+       "      <td>120</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>20228</td>\n",
+       "      <td>W</td>\n",
+       "      <td>156</td>\n",
+       "      <td>85.0</td>\n",
+       "      <td>140</td>\n",
+       "      <td>90</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>55</td>\n",
+       "      <td>140</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>18857</td>\n",
+       "      <td>W</td>\n",
+       "      <td>165</td>\n",
+       "      <td>64.0</td>\n",
+       "      <td>130</td>\n",
+       "      <td>70</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>51</td>\n",
+       "      <td>140</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>17623</td>\n",
+       "      <td>M</td>\n",
+       "      <td>169</td>\n",
+       "      <td>82.0</td>\n",
+       "      <td>150</td>\n",
+       "      <td>100</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>48</td>\n",
+       "      <td>160</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>17474</td>\n",
+       "      <td>W</td>\n",
+       "      <td>156</td>\n",
+       "      <td>56.0</td>\n",
+       "      <td>100</td>\n",
+       "      <td>60</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>47</td>\n",
+       "      <td>120</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "      age gender  height  weight  ap_hi  ap_lo  cholesterol  gluc  smoke  \\\n",
+       "id                                                                         \n",
+       "0   18393      M     168    62.0    110     80            1     1      0   \n",
+       "1   20228      W     156    85.0    140     90            3     1      0   \n",
+       "2   18857      W     165    64.0    130     70            3     1      0   \n",
+       "3   17623      M     169    82.0    150    100            1     1      0   \n",
+       "4   17474      W     156    56.0    100     60            1     1      0   \n",
+       "\n",
+       "    alco  active  cardio  age_years  new_ap  \n",
+       "id                                           \n",
+       "0      0       1       0         50     120  \n",
+       "1      0       1       1         55     140  \n",
+       "2      0       0       1         51     140  \n",
+       "3      0       1       1         48     160  \n",
+       "4      0       0       0         47     120  "
+      ]
+     },
+     "execution_count": 97,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df['age_years']=df['age']//365\n",
+    "\n",
+    "\n",
+    "#df[\"gender\"] = df[\"gender\"].map({1:\"W\",2:\"M\"})\n",
+    "def down(x):\n",
+    "    if x<120:\n",
+    "        return 120\n",
+    "    sub=x%20\n",
+    "    if sub!=0:\n",
+    "        return (x-sub)+20\n",
+    "    return x\n",
+    "df['new_ap']=df['ap_hi'].apply(down)\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 98,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style>\n",
+       "    .dataframe thead tr:only-child th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th>cholesterol</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>new_ap</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>120</th>\n",
+       "      <td>242</td>\n",
+       "      <td>37</td>\n",
+       "      <td>43</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>140</th>\n",
+       "      <td>189</td>\n",
+       "      <td>50</td>\n",
+       "      <td>76</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>160</th>\n",
+       "      <td>90</td>\n",
+       "      <td>31</td>\n",
+       "      <td>25</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>180</th>\n",
+       "      <td>23</td>\n",
+       "      <td>8</td>\n",
+       "      <td>8</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>200</th>\n",
+       "      <td>6</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "cholesterol    1   2   3\n",
+       "new_ap                  \n",
+       "120          242  37  43\n",
+       "140          189  50  76\n",
+       "160           90  31  25\n",
+       "180           23   8   8\n",
+       "200            6   2   2"
+      ]
+     },
+     "execution_count": 98,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "our_age=df[(df['age_years']>=60) & (df['age_years']<65) & (df['gender']=='M')  & (df['smoke']==1)]\n",
+    "ill=our_age[our_age['cardio']==1]\n",
+    "#up_hi=our_age[(our_age['ap_hi']>=120) & (our_age['ap_hi']<=180)].sort_values(by='ap_hi',ascending=False)\n",
+    "\n",
+    "pd.crosstab(our_age['new_ap'],our_age['cholesterol'])\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 99,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style>\n",
+       "    .dataframe thead tr:only-child th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th>cholesterol</th>\n",
+       "      <th>1</th>\n",
+       "      <th>2</th>\n",
+       "      <th>3</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>new_ap</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>120</th>\n",
+       "      <td>83</td>\n",
+       "      <td>18</td>\n",
+       "      <td>31</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>140</th>\n",
+       "      <td>125</td>\n",
+       "      <td>35</td>\n",
+       "      <td>62</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>160</th>\n",
+       "      <td>80</td>\n",
+       "      <td>29</td>\n",
+       "      <td>23</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>180</th>\n",
+       "      <td>21</td>\n",
+       "      <td>7</td>\n",
+       "      <td>8</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>200</th>\n",
+       "      <td>5</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "cholesterol    1   2   3\n",
+       "new_ap                  \n",
+       "120           83  18  31\n",
+       "140          125  35  62\n",
+       "160           80  29  23\n",
+       "180           21   7   8\n",
+       "200            5   2   2"
+      ]
+     },
+     "execution_count": 99,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "pd.crosstab(ill['new_ap'],ill['cholesterol'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Вопрос 6 (2 балла).</font> Постройте новый признак – BMI ([Body Mass Index](https://en.wikipedia.org/wiki/Body_mass_index)). Для этого надо вес в килограммах поделить на квадрат роста в метрах. Нормальными считаются значения BMI от 18.5 до 25. Выберите верные утверждения.**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Утверждения:</font>**\n",
+    "- Медианный BMI по выборке лежит в пределах нормы\n",
+    "- У женщин в среднем BMI выше, чем у мужчин\n",
+    "- У здоровых в среднем BMI выше, чем у больных\n",
+    "- В сегменте здоровых и непьющих мужчин BMI ближе к норме, чем в сегменте здоровых и непьющих женщин"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 102,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "26.374068120774975"
+      ]
+     },
+     "execution_count": 102,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df['bmi']=df['weight']/(df['height']/100)**2\n",
+    "df['bmi'].median()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 95,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "gender\n",
+       "M    26.754442\n",
+       "W    27.987583\n",
+       "Name: bmi, dtype: float64"
+      ]
+     },
+     "execution_count": 95,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.groupby(by='gender')['bmi'].mean()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 104,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style>\n",
+       "    .dataframe thead tr:only-child th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>bmi</th>\n",
+       "      <th>weight</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>cardio</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>26.548175</td>\n",
+       "      <td>71.592150</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>28.566061</td>\n",
+       "      <td>76.822368</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "              bmi     weight\n",
+       "cardio                      \n",
+       "0       26.548175  71.592150\n",
+       "1       28.566061  76.822368"
+      ]
+     },
+     "execution_count": 104,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.groupby(by='cardio')['bmi','weight'].mean()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 109,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "gender\n",
+       "M    25.872638\n",
+       "W    26.845407\n",
+       "Name: bmi, dtype: float64"
+      ]
+     },
+     "execution_count": 109,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df[(df['cardio']==0) & (df['alco']==0)].groupby('gender')['bmi'].mean()\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Вопрос 7 (2 балла).</font> ** Можно заметить, что данные не особо-то чистые, много в них всякой \"грязи\" и неточностей. Еще лучше мы это увидим, когда обсудим визуализацию данных.\n",
+    "\n",
+    "Отфильтруйте следующие сегменты пациентов (считаем это ошибками в данных)\n",
+    "- указанное нижнее значение артериального давления выше верхнего. \n",
+    "- рост строго меньше 2.5%-перцентили или строго больше 97.5%-перцентили (используте `pd.Series.quantile`, если не знаете, что это такое – прочитайте)\n",
+    "- вес строго меньше 2.5%-перцентили или строго больше 97.5%-перцентили\n",
+    "\n",
+    "Этот вовсе не вся чистка данных, которую можно было проделать, но пока остановимся на этом.\n",
+    "\n",
+<<<<<<< HEAD
+    "Сколько процентов данных (округленно) мы выбросили?"
+=======
+    "**Сколько процентов данных (округленно, `round`) мы выбросили?**"
+>>>>>>> 478d1ff1ca11f68f6d367d5b177b12abd320d68b
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**<font color='red'>Варианты:</font>**\n",
+    "- 8\n",
+    "- 9\n",
+    "- 10\n",
+    "- 11"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 168,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "orig=df\n",
+    "df=df[df['ap_lo']<df['ap_hi']]\n",
+    "df=df[(df['height'].quantile(q=0.975)>=df['height']) & (df['height']>=df['height'].quantile(q=0.025))]\n",
+    "df=df[(df['weight'].quantile(q=0.975)>=df['weight']) & (df['weight']>=df['weight'].quantile(q=0.025))]\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 169,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "70000\n",
+      "62783\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "0.1031"
+      ]
+     },
+     "execution_count": 169,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "o=orig['age'].count()\n",
+    "a=df['age'].count()\n",
+    "print(o)\n",
+    "print(a)\n",
+    "(o-a)/o"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.1"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
